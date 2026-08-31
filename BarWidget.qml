@@ -7,7 +7,7 @@ import "TodayPing.js" as TodayPing
 
 BarWidget {
   id: root
-  moduleName: "gladimdim.today-ping"
+  moduleName: "gladimdim.today-reminders"
 
   property int pendingCount: 0
   property int lastCount: 0

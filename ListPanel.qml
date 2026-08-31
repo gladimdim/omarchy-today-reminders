@@ -7,7 +7,7 @@ import "TodayPing.js" as TodayPing
 
 Panel {
   id: root
-  moduleName: "gladimdim.today-ping"
+  moduleName: "gladimdim.today-reminders"
   ipcTarget: ""
   manageIpc: false
 

@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "id": "gladimdim.today-ping",
+  "id": "gladimdim.today-reminders",
   "name": "Today Reminders",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "author": "Dmytro Gladkyi",
   "license": "MIT",
   "description": "Reminder widget for later today. Pick a time, say what to tell you, and get a notification when it fires. Reminders vanish after they ring and never carry into tomorrow.",

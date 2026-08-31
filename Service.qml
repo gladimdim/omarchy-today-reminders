@@ -96,12 +96,12 @@ Item {
       waitForEnd: true
       onStreamFinished: {
         var err = String(text || "").trim()
-        if (err !== "") console.warn("today-ping chime:", err)
+        if (err !== "") console.warn("today-reminders chime:", err)
       }
     }
     onExited: function(exitCode) {
       if (exitCode !== 0)
-        console.warn("today-ping chime: player exited", exitCode)
+        console.warn("today-reminders chime: player exited", exitCode)
     }
   }
 

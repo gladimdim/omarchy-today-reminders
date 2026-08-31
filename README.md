@@ -1,4 +1,4 @@
-# Today Reminders (`gladimdim.today-ping`)
+# Today Reminders (`gladimdim.today-reminders`)
 
 A reminder widget for [Omarchy](https://omarchy.org/). Click the bell in the center dock, pick a time later today, say what to tell you, and get a notification when it fires.
 
@@ -21,13 +21,13 @@ omarchy plugin add https://github.com/gladimdim/omarchy-today-reminders.git --en
 The widget lands in the center section by default. Move it with:
 
 ```bash
-omarchy bar move gladimdim.today-ping --section center --after omarchy.clock
+omarchy bar move gladimdim.today-reminders --section center --after omarchy.clock
 ```
 
 ## Remove
 
 ```bash
-omarchy plugin remove gladimdim.today-ping --yes
+omarchy plugin remove gladimdim.today-reminders --yes
 ```
 
 State lives at `~/.local/state/omarchy/today-ping.json`. Delete that file to reset.

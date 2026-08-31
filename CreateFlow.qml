@@ -71,7 +71,7 @@ Item {
   function hideOverlay() {
     root.opened = false
     if (root.shell && typeof root.shell.hide === "function")
-      root.shell.hide((root.manifest && root.manifest.id) || "gladimdim.today-ping")
+      root.shell.hide((root.manifest && root.manifest.id) || "gladimdim.today-reminders")
   }
 
   function finishFold() {
@@ -174,7 +174,7 @@ Item {
     visible: root.opened
     anchors { top: true; bottom: true; left: true; right: true }
     color: "transparent"
-    WlrLayershell.namespace: "omarchy-today-ping"
+    WlrLayershell.namespace: "omarchy-today-reminders"
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.keyboardFocus: root.folding ? WlrKeyboardFocus.None : WlrKeyboardFocus.Exclusive
     exclusionMode: ExclusionMode.Ignore
