@@ -16,8 +16,7 @@ Item {
   readonly property string dir: TodayPing.stateDir(home, stateHome)
   readonly property string path: TodayPing.statePath(home, stateHome)
   readonly property string pluginDir: manifest && manifest.__sourceDir ? String(manifest.__sourceDir) : ""
-  readonly property string chimePath: pluginDir + "/assets/chime.ogg"
-  readonly property string fallbackChime: "/usr/share/sounds/freedesktop/stereo/message.oga"
+  readonly property string fallbackChime: "/usr/share/sounds/freedesktop/stereo/complete.oga"
 
   property string rawText: ""
   property bool ready: false
@@ -36,6 +35,17 @@ Item {
     writing = false
   }
 
+  function fileUrlToPath(url) {
+    var s = String(url || "")
+    if (s.indexOf("file://") === 0) s = decodeURIComponent(s.slice(7))
+    return s
+  }
+
+  function pluginFile(rel) {
+    if (root.pluginDir !== "") return root.pluginDir + "/" + rel
+    return root.fileUrlToPath(Qt.resolvedUrl(rel))
+  }
+
   function fire(reminder) {
     var notify = [
       "omarchy-notification-send",
@@ -50,15 +60,12 @@ Item {
   }
 
   function playChime() {
-    var sound = root.pluginDir !== "" ? root.chimePath : root.fallbackChime
-    Util.execArgv([
-      "mpv",
-      "--no-video",
-      "--really-quiet",
-      "--volume=32",
-      "--no-terminal",
-      sound
-    ])
+    var sound = root.pluginFile("assets/chime.ogg")
+    var script = root.pluginFile("scripts/play-chime")
+    if (!sound) sound = root.fallbackChime
+    if (chimeProc.running) chimeProc.running = false
+    chimeProc.command = ["bash", script, sound]
+    chimeProc.running = true
   }
 
   function tick() {
@@ -75,6 +82,17 @@ Item {
     id: ensureDir
     command: ["mkdir", "-p", root.dir]
     onExited: store.reload()
+  }
+
+  Process {
+    id: chimeProc
+    stderr: StdioCollector {
+      waitForEnd: true
+      onStreamFinished: {
+        var err = String(text || "").trim()
+        if (err !== "") console.warn("today-ping chime:", err)
+      }
+    }
   }
 
   FileView {
