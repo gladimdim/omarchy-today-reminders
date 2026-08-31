@@ -24,8 +24,7 @@ Item {
 
   function applyRaw(text) {
     rawText = String(text || "")
-    var result = TodayPing.reconcile(rawText, new Date())
-    if (result.changed) persist(result.state)
+    tick()
   }
 
   function persist(state) {
@@ -74,7 +73,7 @@ Item {
   }
 
   function tick() {
-    if (!ready) return
+    if (!ready || writing) return
     var result = TodayPing.reconcile(rawText, new Date())
     if (result.due.length === 0 && !result.changed) return
     for (var i = 0; i < result.due.length; i++) root.fire(result.due[i])
