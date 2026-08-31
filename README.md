@@ -2,6 +2,8 @@
 
 A reminder widget for [Omarchy](https://omarchy.org/). Click the bell in the center dock, pick a time later today, say what to tell you, and get a notification when it fires.
 
+![Today Reminders preview](preview.png)
+
 Reminders never roll into tomorrow. Once they ring — or you dismiss them — they are gone. Waiting pings for today are stored in `~/.local/state/omarchy/today-ping.json` and come back after a reboot.
 
 ## Use
