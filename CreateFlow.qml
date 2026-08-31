@@ -42,7 +42,6 @@ Item {
   property real swallow: 0
   property real restX: 0
   property real restY: 0
-  property var pendingNotice: null
 
   function refreshPlaceholders() {
     root.whenPlaceholder = TodayPing.suggestedWhen(new Date())
@@ -76,13 +75,9 @@ Item {
   }
 
   function finishFold() {
-    var notice = root.pendingNotice
-    root.pendingNotice = null
     root.folding = false
     root.hideOverlay()
     root.resetFlyer()
-    if (notice)
-      root.notify(notice.title, notice.body)
   }
 
   function open(payloadJson) {
@@ -90,7 +85,6 @@ Item {
     root.opened = true
     root.step = "when"
     root.whenText = ""
-    root.pendingNotice = null
     refreshPlaceholders()
     if (field) field.text = ""
     root.resetFlyer()
@@ -160,7 +154,6 @@ Item {
         return
       }
       persist(result.state)
-      root.pendingNotice = TodayPing.toastForReminder(result.reminder)
       root.playFold()
     }
   }
