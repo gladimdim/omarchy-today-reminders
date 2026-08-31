@@ -138,41 +138,41 @@ BarWidget {
     }
   }
 
-  PopupCard {
+  KeyboardPanel {
     id: menu
     anchorItem: button
     bar: root.bar
     owner: root
     open: root.menuOpen
-    padding: Style.space(6)
-    contentWidth: menu.fittedContentWidth(Style.space(196))
-    contentHeight: menu.fittedContentHeight(menuColumn.implicitHeight)
+    padding: Style.space(8)
+    focusTarget: menuCatcher
+    contentWidth: menu.fittedContentWidth(Style.space(200))
+    contentHeight: menu.fittedContentHeight(Style.space(36))
 
-    Column {
-      id: menuColumn
+    PanelKeyCatcher {
+      id: menuCatcher
       anchors.fill: parent
-      spacing: 0
+      onActivateRequested: root.showReminders()
+      onCloseRequested: root.menuOpen = false
 
-      Item {
+      MouseArea {
         id: menuRow
-        width: parent.width
-        implicitHeight: Style.space(32)
-        height: implicitHeight
+        anchors.fill: parent
+        hoverEnabled: true
+        cursorShape: Qt.PointingHandCursor
+        onClicked: root.showReminders()
 
         Rectangle {
           anchors.fill: parent
           radius: Math.max(0, Style.cornerRadius - 2)
-          color: menuHover.hovered
+          color: menuRow.containsMouse
             ? Style.hoverFillFor(Color.popups.text, Color.accent)
             : "transparent"
         }
 
         Text {
-          id: menuLabel
           textFormat: Text.PlainText
-          anchors.left: parent.left
-          anchors.right: parent.right
-          anchors.verticalCenter: parent.verticalCenter
+          anchors.fill: parent
           anchors.leftMargin: Style.space(10)
           anchors.rightMargin: Style.space(10)
           text: "Show reminders"
@@ -180,17 +180,9 @@ BarWidget {
           font.family: root.bar ? root.bar.fontFamily : Style.font.family
           font.pixelSize: Style.font.body
           verticalAlignment: Text.AlignVCenter
+          horizontalAlignment: Text.AlignLeft
           elide: Text.ElideRight
           renderType: Text.NativeRendering
-        }
-
-        HoverHandler { id: menuHover }
-
-        MouseArea {
-          anchors.fill: parent
-          hoverEnabled: true
-          cursorShape: Qt.PointingHandCursor
-          onClicked: root.showReminders()
         }
       }
     }

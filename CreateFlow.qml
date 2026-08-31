@@ -29,7 +29,7 @@ Item {
   property int contentMargin: Style.spacing.panelPadding
   property int headerHeight: Math.max(Style.space(34), Style.font.title + Style.spacing.controlPaddingY * 2)
   property int cardWidth: Math.min(Style.space(360), panel.width - Style.gapsOut * 2)
-  property int cardHeight: Math.min(contentMargin * 2 + headerHeight, panel.height - Style.gapsOut * 2)
+  property int cardHeight: Math.min(contentMargin * 2 + headerHeight + Style.space(12), panel.height - Style.gapsOut * 2)
   readonly property string promptText: root.step === "what" ? "What to tell you" : "When to notify you"
 
   readonly property string home: Quickshell.env("HOME")
@@ -194,7 +194,9 @@ Item {
           opacity: root.filterText ? 1 : 0.58
           font.family: root.fontFamily
           font.pixelSize: Style.font.heading
+          verticalAlignment: Text.AlignVCenter
           elide: Text.ElideRight
+          renderType: Text.NativeRendering
         }
       }
     }

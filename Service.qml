@@ -61,10 +61,15 @@ Item {
 
   function playChime() {
     var sound = root.pluginFile("assets/chime.ogg")
-    var script = root.pluginFile("scripts/play-chime")
     if (!sound) sound = root.fallbackChime
+    var script = root.pluginFile("scripts/play-chime")
     if (chimeProc.running) chimeProc.running = false
-    chimeProc.command = ["bash", script, sound]
+    // Play as a child of omarchy-shell so we share its PipeWire client and
+    // the current default sink (headphones, HDMI, or analog).
+    if (script)
+      chimeProc.command = ["bash", script, sound]
+    else
+      chimeProc.command = ["pw-play", "--volume=0.85", sound]
     chimeProc.running = true
   }
 
@@ -92,6 +97,10 @@ Item {
         var err = String(text || "").trim()
         if (err !== "") console.warn("today-ping chime:", err)
       }
+    }
+    onExited: function(exitCode) {
+      if (exitCode !== 0)
+        console.warn("today-ping chime: player exited", exitCode)
     }
   }
 

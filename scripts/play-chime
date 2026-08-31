@@ -10,15 +10,15 @@ if [[ -z $file || ! -f $file ]]; then
 fi
 
 if command -v pw-play >/dev/null 2>&1; then
-  exec pw-play --volume=0.65 "$file"
+  exec pw-play --volume=0.85 "$file"
 fi
 
 if command -v paplay >/dev/null 2>&1; then
-  exec paplay --volume=42000 "$file"
+  exec paplay --volume=52000 "$file"
 fi
 
 if command -v mpv >/dev/null 2>&1; then
-  exec mpv --no-config --no-video --vo=null --really-quiet --volume=90 \
+  exec mpv --no-config --no-video --vo=null --really-quiet --volume=100 \
     --no-terminal --force-window=no --audio-display=no "$file"
 fi
 
