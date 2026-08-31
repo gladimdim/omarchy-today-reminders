@@ -8,7 +8,7 @@ Reminders never roll into tomorrow. Once they ring — or you dismiss them — t
 
 - **Left click** the bell in the center of the bar. Type a time for today (`15:30`, `3:30pm`), Enter, then type the message and Enter again.
 - **Right click** the bell → **Show reminders**. Today's waiting pings appear in a small popup. Click a row (or ✕) to dismiss it before it fires.
-- At the chosen time: a notification plus a short (~1.5s) unintrusive chime. The reminder is then deleted.
+- At the chosen time: a notification plus a short ding-dong (`assets/chime.ogg`, from an ElevenLabs doorbell). The reminder is then deleted.
 
 Times already in the past are rejected. Escape cancels the dialog.
 
