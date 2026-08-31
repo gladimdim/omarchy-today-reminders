@@ -155,6 +155,7 @@ BarWidget {
 
     Text {
       id: badgeText
+      textFormat: Text.PlainText
       anchors.centerIn: parent
       text: root.pendingCount > 9 ? "9+" : String(root.pendingCount)
       color: Color.background

@@ -61,10 +61,23 @@ function testToastAndTooltip() {
   assert.ok(TodayPing.tooltipFor([]).indexOf("Today Ping") !== -1)
 }
 
+function testInjectionHardening() {
+  assert.strictEqual(TodayPing.sanitizeMessage("hi\x00<script>alert(1)</script>"), "hi<script>alert(1)</script>")
+  assert.strictEqual(TodayPing.notifySafeText("--exec rm"), " --exec rm")
+  assert.strictEqual(TodayPing.toastForReminder({ atLabel: "15:30", message: "--exec" }).body, " --exec")
+  assert.strictEqual(TodayPing.sanitizeId("../etc/passwd"), "")
+  assert.strictEqual(TodayPing.sanitizeId("mth9tcla-cramkc"), "mth9tcla-cramkc")
+  const huge = "{\"date\":\"2026-08-31\",\"reminders\":" + "x".repeat(TodayPing.stateMaxBytes) + "}"
+  assert.strictEqual(TodayPing.reconcile(huge, at(10, 0)).state.reminders.length, 0)
+  const proto = JSON.stringify({ date: "2026-08-31", reminders: [{ __proto__: { x: 1 }, message: "x" }] })
+  assert.strictEqual(TodayPing.reconcile(proto, at(10, 0)).state.reminders.length, 0)
+}
+
 testParseWhen()
 testTodayOnlyAndAck()
 testRemove()
 testSuggestedWhen()
 testRandomPhrase()
 testToastAndTooltip()
+testInjectionHardening()
 console.log("ok")

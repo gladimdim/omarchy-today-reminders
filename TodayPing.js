@@ -1,5 +1,7 @@
 var maxMessage = 280
 var maxReminders = 50
+var maxScanReminders = 100
+var stateMaxBytes = 65536
 var stateFileName = "today-ping.json"
 
 function pad2(n) {
@@ -123,14 +125,28 @@ function parseWhen(text, now) {
 }
 
 function sanitizeMessage(text) {
-  var message = String(text || "").replace(/\s+/g, " ").trim()
+  var message = String(text || "")
+  message = message.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, "")
+  message = message.replace(/\s+/g, " ").trim()
   if (message.length > maxMessage) message = message.slice(0, maxMessage)
   return message
 }
 
+function sanitizeId(value) {
+  var id = String(value || "").slice(0, 64)
+  if (!/^[A-Za-z0-9._-]+$/.test(id)) return ""
+  return id
+}
+
+function notifySafeText(value) {
+  var text = String(value || "")
+  if (text.charAt(0) === "-") return " " + text
+  return text
+}
+
 function sanitizeReminder(item, today) {
   if (!item || typeof item !== "object") return null
-  var id = String(item.id || "").slice(0, 64)
+  var id = sanitizeId(item.id)
   var atMs = Number(item.atMs)
   var message = sanitizeMessage(item.message)
   if (!id || !isFinite(atMs) || atMs <= 0 || !message) return null
@@ -150,9 +166,10 @@ function sanitizeReminder(item, today) {
 
 function parseState(raw) {
   if (!raw) return null
+  if (typeof raw === "string" && raw.length > stateMaxBytes) return null
   try {
     var parsed = typeof raw === "string" ? JSON.parse(raw) : raw
-    if (!parsed || typeof parsed !== "object") return null
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return null
     return parsed
   } catch (e) {
     return null
@@ -181,6 +198,10 @@ function reconcile(raw, now) {
   }
 
   var items = Array.isArray(parsed.reminders) ? parsed.reminders : []
+  if (items.length > maxScanReminders) {
+    items = items.slice(0, maxScanReminders)
+    changed = true
+  }
   for (var i = 0; i < items.length; i++) {
     var reminder = sanitizeReminder(items[i], today)
     if (!reminder) {
@@ -254,8 +275,8 @@ var toastExpireMs = 15000
 
 function toastForReminder(reminder) {
   return {
-    title: String((reminder && reminder.atLabel) || "Today Ping"),
-    body: String((reminder && reminder.message) || "")
+    title: notifySafeText((reminder && reminder.atLabel) || "Today Ping"),
+    body: notifySafeText((reminder && reminder.message) || "")
   }
 }
 
@@ -288,6 +309,9 @@ if (typeof module !== "undefined") {
     addReminder: addReminder,
     removeReminder: removeReminder,
     encode: encode,
+    sanitizeId: sanitizeId,
+    notifySafeText: notifySafeText,
+    stateMaxBytes: stateMaxBytes,
     toastExpireMs: toastExpireMs,
     toastForReminder: toastForReminder,
     tooltipFor: tooltipFor

@@ -41,8 +41,10 @@ Item {
   }
 
   function pluginFile(rel) {
-    if (root.pluginDir !== "") return root.pluginDir + "/" + rel
-    return root.fileUrlToPath(Qt.resolvedUrl(rel))
+    var name = String(rel || "")
+    if (!name || name.indexOf("..") !== -1 || name.charAt(0) === "/") return ""
+    if (root.pluginDir !== "") return root.pluginDir + "/" + name
+    return root.fileUrlToPath(Qt.resolvedUrl(name))
   }
 
   function fire(reminder) {

@@ -4,8 +4,8 @@
 set -u
 
 file=${1-}
-if [[ -z $file || ! -f $file ]]; then
-  echo "play-chime: missing file: ${file:-<none>}" >&2
+if [[ -z $file || $file == *..* || -L $file || ! -f $file ]]; then
+  echo "play-chime: missing regular file: ${file:-<none>}" >&2
   exit 1
 fi
 

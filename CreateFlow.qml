@@ -113,8 +113,8 @@ Item {
       "-g", "󰂚",
       "-u", "normal",
       "-t", "15000",
-      String(title),
-      String(body || "")
+      TodayPing.notifySafeText(title),
+      TodayPing.notifySafeText(body || "")
     ])
   }
 
