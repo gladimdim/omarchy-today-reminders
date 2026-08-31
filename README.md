@@ -14,10 +14,8 @@ Times already in the past are rejected. Escape cancels the dialog.
 
 ## Install
 
-From this checkout:
-
 ```bash
-omarchy plugin add /home/$USER/GitHub/omarchy-today-ping --enable --yes
+omarchy plugin add https://github.com/gladimdim/omarchy-today-ping.git --enable --yes
 ```
 
 The widget lands in the center section by default. Move it with:
@@ -38,7 +36,7 @@ State lives at `~/.local/state/omarchy/today-ping.json`. Delete that file to res
 
 - `manifest.json` — `service` + `overlay` + `bar-widget`, center by default
 - `Service.qml` — fires due reminders once a second, plays `assets/chime.wav`, drops yesterday
-- `CreateFlow.qml` — two-step overlay: "When to notify you" then "What to tell you"
+- `CreateFlow.qml` — two-step overlay: "When to notify" then "What to notify"
 - `BarWidget.qml` — center-bar bell, right-click menu, pending badge
 - `ListPanel.qml` — today's list
 - `TodayPing.js` — time parsing and today-only store
