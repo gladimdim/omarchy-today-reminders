@@ -144,33 +144,54 @@ BarWidget {
     bar: root.bar
     owner: root
     open: root.menuOpen
-    contentWidth: Style.space(180)
-    contentHeight: Style.space(40)
+    padding: Style.space(6)
+    contentWidth: menu.fittedContentWidth(Style.space(196))
+    contentHeight: menu.fittedContentHeight(menuColumn.implicitHeight)
 
-    MouseArea {
-      id: menuRow
-      width: parent.width
-      height: Style.spacing.popupRowHeight
-      hoverEnabled: true
-      cursorShape: Qt.PointingHandCursor
-      onClicked: root.showReminders()
+    Column {
+      id: menuColumn
+      anchors.fill: parent
+      spacing: 0
 
-      Rectangle {
-        anchors.fill: parent
-        radius: Style.cornerRadius
-        color: menuRow.containsMouse ? Util.alpha(Color.popups.text, 0.08) : "transparent"
-      }
+      Item {
+        id: menuRow
+        width: parent.width
+        implicitHeight: Style.space(32)
+        height: implicitHeight
 
-      Text {
-        textFormat: Text.PlainText
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.verticalCenter: parent.verticalCenter
-        anchors.leftMargin: Style.space(8)
-        text: "Show reminders"
-        color: Color.popups.text
-        font.family: root.bar ? root.bar.fontFamily : Style.font.family
-        font.pixelSize: Style.font.body
+        Rectangle {
+          anchors.fill: parent
+          radius: Math.max(0, Style.cornerRadius - 2)
+          color: menuHover.hovered
+            ? Style.hoverFillFor(Color.popups.text, Color.accent)
+            : "transparent"
+        }
+
+        Text {
+          id: menuLabel
+          textFormat: Text.PlainText
+          anchors.left: parent.left
+          anchors.right: parent.right
+          anchors.verticalCenter: parent.verticalCenter
+          anchors.leftMargin: Style.space(10)
+          anchors.rightMargin: Style.space(10)
+          text: "Show reminders"
+          color: Color.popups.text
+          font.family: root.bar ? root.bar.fontFamily : Style.font.family
+          font.pixelSize: Style.font.body
+          verticalAlignment: Text.AlignVCenter
+          elide: Text.ElideRight
+          renderType: Text.NativeRendering
+        }
+
+        HoverHandler { id: menuHover }
+
+        MouseArea {
+          anchors.fill: parent
+          hoverEnabled: true
+          cursorShape: Qt.PointingHandCursor
+          onClicked: root.showReminders()
+        }
       }
     }
   }
