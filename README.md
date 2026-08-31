@@ -15,7 +15,7 @@ Times already in the past are rejected. Escape cancels the dialog.
 ## Install
 
 ```bash
-omarchy plugin add https://github.com/gladimdim/omarchy-today-ping.git --enable --yes
+omarchy plugin add https://github.com/gladimdim/omarchy-today-reminders.git --enable --yes
 ```
 
 The widget lands in the center section by default. Move it with:
