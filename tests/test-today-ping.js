@@ -58,7 +58,7 @@ function testToastAndTooltip() {
   assert.strictEqual(toast.title, "15:30")
   assert.strictEqual(toast.body, "Tea")
   assert.strictEqual(TodayPing.tooltipFor([reminder]), "15:30  Tea")
-  assert.ok(TodayPing.tooltipFor([]).indexOf("Today Ping") !== -1)
+  assert.ok(TodayPing.tooltipFor([]).indexOf("Today Reminders") !== -1)
 }
 
 function testInjectionHardening() {

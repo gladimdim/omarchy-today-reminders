@@ -1,6 +1,6 @@
-# Today Ping (`gladimdim.today-ping`)
+# Today Reminders (`gladimdim.today-ping`)
 
-A today-only reminder plugin for the [Omarchy](https://omarchy.org/) bar. Click the bell in the center dock, say **when** to notify you and **what** to tell you, and get a quiet desktop ping at that time.
+A reminder widget for [Omarchy](https://omarchy.org/). Click the bell in the center dock, pick a time later today, say what to tell you, and get a notification when it fires.
 
 Reminders never roll into tomorrow. Once they ring — or you dismiss them — they are gone. Waiting pings for today are stored in `~/.local/state/omarchy/today-ping.json` and come back after a reboot.
 

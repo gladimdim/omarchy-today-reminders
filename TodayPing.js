@@ -275,14 +275,14 @@ var toastExpireMs = 15000
 
 function toastForReminder(reminder) {
   return {
-    title: notifySafeText((reminder && reminder.atLabel) || "Today Ping"),
+    title: notifySafeText((reminder && reminder.atLabel) || "Today Reminders"),
     body: notifySafeText((reminder && reminder.message) || "")
   }
 }
 
 function tooltipFor(reminders) {
   var items = Array.isArray(reminders) ? reminders : []
-  if (items.length === 0) return "Today Ping — click to set"
+  if (items.length === 0) return "Today Reminders — click to set"
   var lines = []
   for (var i = 0; i < items.length; i++) {
     var r = items[i]
@@ -293,7 +293,7 @@ function tooltipFor(reminders) {
     else if (time) lines.push(time)
     else if (message) lines.push(message)
   }
-  return lines.length ? lines.join("\n") : "Today Ping — click to set"
+  return lines.length ? lines.join("\n") : "Today Reminders — click to set"
 }
 
 if (typeof module !== "undefined") {

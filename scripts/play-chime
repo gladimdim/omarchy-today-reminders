@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Play the Today Ping chime on the current PipeWire/Pulse sink.
+# Play the Today Reminders chime on the current PipeWire/Pulse sink.
 # Prefer pw-play so we never register as an MPRIS media player.
 set -u
 

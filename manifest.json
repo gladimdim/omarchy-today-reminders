@@ -1,11 +1,11 @@
 {
   "schemaVersion": 1,
   "id": "gladimdim.today-ping",
-  "name": "Today Ping",
-  "version": "1.0.0",
+  "name": "Today Reminders",
+  "version": "1.0.1",
   "author": "Dmytro Gladkyi",
   "license": "MIT",
-  "description": "Today-only reminders from the center bar: pick a time, say what to tell you, get a quiet ping. They vanish after they ring, and they never carry into tomorrow.",
+  "description": "Reminder widget for later today. Pick a time, say what to tell you, and get a notification when it fires. Reminders vanish after they ring and never carry into tomorrow.",
   "kinds": [
     "service",
     "overlay",
@@ -18,10 +18,21 @@
     "barWidget": "BarWidget.qml"
   },
   "barWidget": {
-    "displayName": "Today Ping",
-    "description": "Set a reminder for later today",
+    "displayName": "Today Reminders",
+    "description": "Reminder widget: set a reminder for later today",
     "category": "Productivity",
     "allowMultiple": false,
-    "defaultSection": "center"
+    "defaultSection": "center",
+    "aliases": [
+      "reminder",
+      "reminders",
+      "today-reminder",
+      "today-reminders",
+      "reminder-widget",
+      "alarm",
+      "notify",
+      "ping",
+      "today-ping"
+    ]
   }
 }

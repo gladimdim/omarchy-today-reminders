@@ -131,12 +131,12 @@ Item {
     if (root.step === "when") {
       if (!selection) selection = root.whenPlaceholder
       if (!selection) {
-        root.notify("Today Ping", "Enter a time for today")
+        root.notify("Today Reminders", "Enter a time for today")
         return
       }
       var when = TodayPing.parseWhen(selection, new Date())
       if (!when.ok) {
-        root.notify("Today Ping", when.error)
+        root.notify("Today Reminders", when.error)
         return
       }
       root.whenText = selection
@@ -150,7 +150,7 @@ Item {
       if (!selection) selection = root.whatPlaceholder
       var result = TodayPing.addReminder(root.rawText, root.whenText, selection, new Date())
       if (!result.ok) {
-        root.notify("Today Ping", result.error)
+        root.notify("Today Reminders", result.error)
         return
       }
       persist(result.state)
