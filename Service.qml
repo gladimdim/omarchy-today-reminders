@@ -60,7 +60,7 @@ Item {
   }
 
   function playChime() {
-    var sound = root.pluginFile("assets/chime.ogg")
+    var sound = root.pluginFile("assets/chime.wav")
     if (!sound) sound = root.fallbackChime
     var script = root.pluginFile("scripts/play-chime")
     if (chimeProc.running) chimeProc.running = false

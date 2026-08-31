@@ -8,7 +8,7 @@ Reminders never roll into tomorrow. Once they ring — or you dismiss them — t
 
 - **Left click** the bell in the center of the bar. Type a time for today (`15:30`, `3:30pm`), Enter, then type the message and Enter again.
 - **Right click** the bell → **Show reminders**. Today's waiting pings appear in a small popup. Click a row (or ✕) to dismiss it before it fires.
-- At the chosen time: a notification plus a ding-dong (`assets/chime.ogg`, from the ElevenLabs foley WAV). The reminder is then deleted.
+- At the chosen time: a notification plus a ding-dong (`assets/chime.wav`). The reminder is then deleted.
 
 Times already in the past are rejected. Escape cancels the dialog.
 
@@ -37,7 +37,7 @@ State lives at `~/.local/state/omarchy/today-ping.json`. Delete that file to res
 ## Files
 
 - `manifest.json` — `service` + `overlay` + `bar-widget`, center by default
-- `Service.qml` — fires due reminders once a second, plays `assets/chime.ogg`, drops yesterday
+- `Service.qml` — fires due reminders once a second, plays `assets/chime.wav`, drops yesterday
 - `CreateFlow.qml` — two-step overlay: "When to notify you" then "What to tell you"
 - `BarWidget.qml` — center-bar bell, right-click menu, pending badge
 - `ListPanel.qml` — today's list
