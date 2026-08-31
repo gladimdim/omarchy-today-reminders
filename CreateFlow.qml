@@ -17,7 +17,8 @@ Item {
   property bool opened: false
   property string step: "when"
   property string whenText: ""
-  property string filterText: ""
+  property string whenPlaceholder: ""
+  property string whatPlaceholder: ""
   property string fontFamily: Style.font.menuFamily
 
   property color background: Color.menu.background
@@ -27,10 +28,9 @@ Item {
   property color scrim: Color.menu.scrim
   readonly property int cornerRadius: Style.cornerRadius
   property int contentMargin: Style.spacing.panelPadding
-  property int headerHeight: Math.max(Style.space(34), Style.font.title + Style.spacing.controlPaddingY * 2)
-  property int cardWidth: Math.min(Style.space(360), panel.width - Style.gapsOut * 2)
-  property int cardHeight: Math.min(contentMargin * 2 + headerHeight + Style.space(12), panel.height - Style.gapsOut * 2)
-  readonly property string promptText: root.step === "what" ? "What to tell you" : "When to notify you"
+  property int cardWidth: Math.min(Style.space(380), panel.width - Style.gapsOut * 2)
+  readonly property string titleText: root.step === "what" ? "What to notify" : "When to notify"
+  readonly property string fieldPlaceholder: root.step === "what" ? root.whatPlaceholder : root.whenPlaceholder
 
   readonly property string home: Quickshell.env("HOME")
   readonly property string stateHome: Quickshell.env("XDG_STATE_HOME")
@@ -39,13 +39,19 @@ Item {
   property string rawText: ""
   property bool writing: false
 
+  function refreshPlaceholders() {
+    root.whenPlaceholder = TodayPing.suggestedWhen(new Date())
+    root.whatPlaceholder = TodayPing.randomPhrase()
+  }
+
   function open(payloadJson) {
     root.opened = true
     root.step = "when"
     root.whenText = ""
-    root.filterText = ""
+    refreshPlaceholders()
+    if (field) field.text = ""
     store.reload()
-    Qt.callLater(function() { keyCatcher.forceActiveFocus() })
+    Qt.callLater(function() { if (field) field.forceActiveFocus() })
   }
 
   function close() {
@@ -63,10 +69,6 @@ Item {
     else root.open("{}")
   }
 
-  function setFilter(nextFilter) {
-    root.filterText = nextFilter
-  }
-
   function notify(title, body) {
     Util.execArgv(["omarchy-notification-send", "-g", "󰂚", String(title), String(body || "")])
   }
@@ -79,11 +81,12 @@ Item {
   }
 
   function submit() {
-    var selection = root.filterText
+    var selection = field ? String(field.text || "").trim() : ""
 
     if (root.step === "when") {
-      if (!selection.trim()) {
-        root.dismiss()
+      if (!selection) selection = root.whenPlaceholder
+      if (!selection) {
+        root.notify("Today Ping", "Enter a time for today")
         return
       }
       var when = TodayPing.parseWhen(selection, new Date())
@@ -93,12 +96,13 @@ Item {
       }
       root.whenText = selection
       root.step = "what"
-      root.filterText = ""
-      Qt.callLater(function() { keyCatcher.forceActiveFocus() })
+      if (field) field.text = ""
+      Qt.callLater(function() { if (field) field.forceActiveFocus() })
       return
     }
 
     if (root.step === "what") {
+      if (!selection) selection = root.whatPlaceholder
       var result = TodayPing.addReminder(root.rawText, root.whenText, selection, new Date())
       if (!result.ok) {
         root.notify("Today Ping", result.error)
@@ -144,7 +148,7 @@ Item {
     BorderSurface {
       id: card
       width: root.cardWidth
-      height: root.cardHeight
+      height: form.implicitHeight + contentMargin * 2 + Style.space(8)
       radius: root.cornerRadius
       anchors.centerIn: parent
       color: root.background
@@ -153,50 +157,43 @@ Item {
 
       MouseArea { anchors.fill: parent; onClicked: {} }
 
-      Item {
-        id: keyCatcher
-        anchors.fill: parent
-        focus: true
-
-        Keys.priority: Keys.BeforeItem
-        Keys.onPressed: function(event) {
-          if (event.key === Qt.Key_Escape) {
-            if (root.filterText) root.setFilter("")
-            else root.dismiss()
-            event.accepted = true
-          } else if (Util.editsFilter(event, root.filterText)) {
-            root.setFilter(Util.editedFilter(event, root.filterText))
-            event.accepted = true
-          } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-            root.submit()
-            event.accepted = true
-          } else if (event.text && event.text.length === 1 && event.text.charCodeAt(0) >= 32 && event.text.charCodeAt(0) !== 127) {
-            root.setFilter(root.filterText + event.text)
-            event.accepted = true
-          }
-        }
-      }
-
-      Item {
-        anchors.fill: parent
+      Column {
+        id: form
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.top: parent.top
         anchors.topMargin: card.contentTopInset
         anchors.rightMargin: card.contentRightInset
-        anchors.bottomMargin: card.contentBottomInset
         anchors.leftMargin: card.contentLeftInset
+        spacing: Style.space(10)
 
         Text {
           textFormat: Text.PlainText
-          anchors.left: parent.left
-          anchors.right: parent.right
-          anchors.verticalCenter: parent.verticalCenter
-          text: root.filterText || (root.promptText + "...")
-          color: root.foreground
-          opacity: root.filterText ? 1 : 0.58
+          width: parent.width
+          text: root.titleText
+          color: Qt.darker(root.foreground, 1.25)
+          font.family: root.fontFamily
+          font.pixelSize: Style.font.title
+          font.bold: true
+          renderType: Text.NativeRendering
+        }
+
+        TextField {
+          id: field
+          width: parent.width
+          foreground: root.foreground
+          accent: Color.accent
           font.family: root.fontFamily
           font.pixelSize: Style.font.heading
-          verticalAlignment: Text.AlignVCenter
-          elide: Text.ElideRight
-          renderType: Text.NativeRendering
+          placeholderText: root.fieldPlaceholder
+          onAccepted: root.submit()
+
+          Keys.onPressed: function(event) {
+            if (event.key === Qt.Key_Escape) {
+              root.dismiss()
+              event.accepted = true
+            }
+          }
         }
       }
     }

@@ -35,6 +35,35 @@ function formatTime(hour, minute) {
   return pad2(hour) + ":" + pad2(minute)
 }
 
+function suggestedWhen(now) {
+  now = now || new Date()
+  var at = new Date(now.getTime() + 15 * 60 * 1000)
+  if (todayKey(at) !== todayKey(now)) {
+    at = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 0, 0)
+    if (at.getTime() <= now.getTime()) return ""
+  }
+  return formatTime(at.getHours(), at.getMinutes())
+}
+
+var reminderPhrases = [
+  "Stand up and stretch",
+  "Drink some water",
+  "Look away from the screen",
+  "Check the oven",
+  "Put the kettle on",
+  "Take a breath",
+  "Lock the door",
+  "Feed the cat",
+  "Time to wrap up",
+  "Call back",
+  "Water the plants",
+  "Grab a snack"
+]
+
+function randomPhrase() {
+  return reminderPhrases[Math.floor(Math.random() * reminderPhrases.length)]
+}
+
 function parseWhen(text, now) {
   now = now || new Date()
   var raw = String(text || "").trim().toLowerCase()
@@ -227,6 +256,8 @@ if (typeof module !== "undefined") {
     statePath: statePath,
     emptyState: emptyState,
     parseWhen: parseWhen,
+    suggestedWhen: suggestedWhen,
+    randomPhrase: randomPhrase,
     sanitizeMessage: sanitizeMessage,
     reconcile: reconcile,
     addReminder: addReminder,

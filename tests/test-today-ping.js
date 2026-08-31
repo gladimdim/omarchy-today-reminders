@@ -41,7 +41,20 @@ function testRemove() {
   assert.strictEqual(removed.state.reminders.length, 0)
 }
 
+function testSuggestedWhen() {
+  assert.strictEqual(TodayPing.suggestedWhen(at(14, 0)), "14:15")
+  assert.strictEqual(TodayPing.suggestedWhen(at(14, 50)), "15:05")
+  assert.strictEqual(TodayPing.suggestedWhen(at(23, 50)), "23:59")
+}
+
+function testRandomPhrase() {
+  const phrase = TodayPing.randomPhrase()
+  assert.ok(typeof phrase === "string" && phrase.length > 0)
+}
+
 testParseWhen()
 testTodayOnlyAndAck()
 testRemove()
+testSuggestedWhen()
+testRandomPhrase()
 console.log("ok")
