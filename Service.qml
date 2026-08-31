@@ -1,0 +1,109 @@
+import QtQuick
+import Quickshell
+import Quickshell.Io
+import qs.Commons
+import "TodayPing.js" as TodayPing
+
+Item {
+  id: root
+
+  property var shell: null
+  property var manifest: null
+  property string omarchyPath: Quickshell.env("OMARCHY_PATH")
+
+  readonly property string home: Quickshell.env("HOME")
+  readonly property string stateHome: Quickshell.env("XDG_STATE_HOME")
+  readonly property string dir: TodayPing.stateDir(home, stateHome)
+  readonly property string path: TodayPing.statePath(home, stateHome)
+  readonly property string pluginDir: manifest && manifest.__sourceDir ? String(manifest.__sourceDir) : ""
+  readonly property string chimePath: pluginDir + "/assets/chime.ogg"
+  readonly property string fallbackChime: "/usr/share/sounds/freedesktop/stereo/message.oga"
+
+  property string rawText: ""
+  property bool ready: false
+  property bool writing: false
+
+  function applyRaw(text) {
+    rawText = String(text || "")
+    var result = TodayPing.reconcile(rawText, new Date())
+    if (result.changed) persist(result.state)
+  }
+
+  function persist(state) {
+    writing = true
+    rawText = TodayPing.encode(state)
+    store.setText(rawText)
+    writing = false
+  }
+
+  function fire(reminder) {
+    var notify = [
+      "omarchy-notification-send",
+      "-g", "󰂚",
+      "-u", "normal",
+      "-t", "8000",
+      "Today Ping",
+      String(reminder.message || "")
+    ]
+    Util.execArgv(notify)
+    playChime()
+  }
+
+  function playChime() {
+    var sound = root.pluginDir !== "" ? root.chimePath : root.fallbackChime
+    Util.execArgv([
+      "mpv",
+      "--no-video",
+      "--really-quiet",
+      "--volume=32",
+      "--no-terminal",
+      sound
+    ])
+  }
+
+  function tick() {
+    if (!ready) return
+    var result = TodayPing.reconcile(rawText, new Date())
+    if (result.due.length === 0 && !result.changed) return
+    for (var i = 0; i < result.due.length; i++) root.fire(result.due[i])
+    persist(result.state)
+  }
+
+  Component.onCompleted: ensureDir.running = true
+
+  Process {
+    id: ensureDir
+    command: ["mkdir", "-p", root.dir]
+    onExited: store.reload()
+  }
+
+  FileView {
+    id: store
+    path: root.path
+    watchChanges: true
+    atomicWrites: true
+    printErrors: false
+    onLoaded: {
+      if (root.writing) return
+      root.ready = true
+      root.applyRaw(text())
+    }
+    onLoadFailed: {
+      root.ready = true
+      root.applyRaw("")
+    }
+    onFileChanged: if (!root.writing) reload()
+  }
+
+  Timer {
+    interval: 1000
+    running: root.ready
+    repeat: true
+    onTriggered: root.tick()
+  }
+
+  SystemClock {
+    precision: SystemClock.Minutes
+    onDateChanged: root.tick()
+  }
+}
