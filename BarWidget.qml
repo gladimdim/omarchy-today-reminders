@@ -10,7 +10,10 @@ BarWidget {
   moduleName: "gladimdim.today-ping"
 
   property int pendingCount: 0
+  property int lastCount: 0
+  property bool countReady: false
   property bool menuOpen: false
+  property real catchScale: 1
 
   readonly property string home: Quickshell.env("HOME")
   readonly property string stateHome: Quickshell.env("XDG_STATE_HOME")
@@ -62,7 +65,11 @@ BarWidget {
 
   function applyCount(text) {
     var result = TodayPing.reconcile(text, new Date())
-    pendingCount = result.state.reminders.length
+    var next = result.state.reminders.length
+    if (root.countReady && next > root.lastCount) catchDelay.restart()
+    root.pendingCount = next
+    root.lastCount = next
+    root.countReady = true
   }
 
   onBarChanged: injectList()
@@ -95,6 +102,24 @@ BarWidget {
       Qt.callLater(root.injectList)
     }
   }
+
+  Timer {
+    id: catchDelay
+    interval: 300
+    onTriggered: catchAnim.restart()
+  }
+
+  SequentialAnimation {
+    id: catchAnim
+    NumberAnimation { target: root; property: "catchScale"; to: 1.32; duration: 150; easing.type: Easing.OutBack }
+    NumberAnimation { target: root; property: "catchScale"; to: 1; duration: 240; easing.type: Easing.OutCubic }
+  }
+
+  Item {
+    id: iconFace
+    anchors.fill: parent
+    transformOrigin: Item.Center
+    scale: root.catchScale
 
   BarIconButton {
     id: button
@@ -136,6 +161,7 @@ BarWidget {
       font.bold: true
       font.family: root.bar ? root.bar.fontFamily : Style.font.family
     }
+  }
   }
 
   KeyboardPanel {

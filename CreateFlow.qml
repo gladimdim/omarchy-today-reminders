@@ -38,18 +38,94 @@ Item {
 
   property string rawText: ""
   property bool writing: false
+  property bool folding: false
+  property real foldScaleX: 1
+  property real foldScaleY: 1
+  property var pendingNotice: null
 
   function refreshPlaceholders() {
     root.whenPlaceholder = TodayPing.suggestedWhen(new Date())
     root.whatPlaceholder = TodayPing.randomPhrase()
   }
 
+  function resetFlyer() {
+    root.folding = false
+    root.foldScaleX = 1
+    root.foldScaleY = 1
+    flyer.opacity = 1
+    scrimRect.opacity = 1
+    Qt.callLater(root.centerFlyer)
+  }
+
+  function centerFlyer() {
+    if (root.folding || !flyer || !panel) return
+    flyer.x = Math.round((panel.width - flyer.width) / 2)
+    flyer.y = Math.round((panel.height - flyer.height) / 2)
+  }
+
+  function iconCenter() {
+    var fallback = Qt.point(panel.width / 2, panel.height - Style.space(20))
+    try {
+      var bar = root.shell ? root.shell.bar : null
+      if (!bar || typeof bar.moduleWidgets !== "function") return fallback
+      var items = bar.moduleWidgets("gladimdim.today-ping")
+      if (!items || items.length === 0) return fallback
+      var icon = items[0]
+      for (var i = 0; i < items.length; i++) {
+        var win = items[i].QsWindow ? items[i].QsWindow.window : null
+        if (win && win.screen && panel.screen && win.screen === panel.screen) {
+          icon = items[i]
+          break
+        }
+      }
+      if (!icon || typeof icon.mapToGlobal !== "function") return fallback
+      var g = icon.mapToGlobal(icon.width / 2, icon.height / 2)
+      var gx = g && g.x !== undefined ? g.x : Number(g)
+      var gy = g && g.y !== undefined ? g.y : 0
+      var loc = (typeof panel.mapFromGlobal === "function") ? panel.mapFromGlobal(gx, gy) : Qt.point(gx, gy)
+      if (!loc || loc.x === undefined) return fallback
+      if (loc.x < 0 || loc.x > panel.width || loc.y < 0 || loc.y > panel.height) return fallback
+      return loc
+    } catch (e) {
+      return fallback
+    }
+  }
+
+  function playFold() {
+    if (root.folding) return
+    root.folding = true
+    if (field) field.focus = false
+    var target = root.iconCenter()
+    flyX.to = Math.round(target.x - flyer.width / 2)
+    flyY.to = Math.round(target.y - flyer.height / 2)
+    foldAnim.restart()
+  }
+
+  function hideOverlay() {
+    root.opened = false
+    if (root.shell && typeof root.shell.hide === "function")
+      root.shell.hide((root.manifest && root.manifest.id) || "gladimdim.today-ping")
+  }
+
+  function finishFold() {
+    var notice = root.pendingNotice
+    root.pendingNotice = null
+    root.folding = false
+    root.hideOverlay()
+    root.resetFlyer()
+    if (notice)
+      root.notify(notice.title, notice.body)
+  }
+
   function open(payloadJson) {
+    if (foldAnim.running) foldAnim.stop()
     root.opened = true
     root.step = "when"
     root.whenText = ""
+    root.pendingNotice = null
     refreshPlaceholders()
     if (field) field.text = ""
+    root.resetFlyer()
     store.reload()
     Qt.callLater(function() { if (field) field.forceActiveFocus() })
   }
@@ -59,9 +135,9 @@ Item {
   }
 
   function dismiss() {
-    root.opened = false
-    if (root.shell && typeof root.shell.hide === "function")
-      root.shell.hide((root.manifest && root.manifest.id) || "gladimdim.today-ping")
+    if (foldAnim.running) foldAnim.stop()
+    root.folding = false
+    root.hideOverlay()
   }
 
   function toggle() {
@@ -109,8 +185,11 @@ Item {
         return
       }
       persist(result.state)
-      root.dismiss()
-      root.notify(result.reminder.message, "I'll ping you at " + result.reminder.atLabel)
+      root.pendingNotice = {
+        title: result.reminder.message,
+        body: "I'll ping you at " + result.reminder.atLabel
+      }
+      root.playFold()
     }
   }
 
@@ -132,70 +211,106 @@ Item {
     color: "transparent"
     WlrLayershell.namespace: "omarchy-today-ping"
     WlrLayershell.layer: WlrLayer.Overlay
-    WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
+    WlrLayershell.keyboardFocus: root.folding ? WlrKeyboardFocus.None : WlrKeyboardFocus.Exclusive
     exclusionMode: ExclusionMode.Ignore
+    onWidthChanged: if (visible && !root.folding) root.centerFlyer()
+    onHeightChanged: if (visible && !root.folding) root.centerFlyer()
 
     Rectangle {
+      id: scrimRect
       anchors.fill: parent
       color: root.scrim
     }
 
     MouseArea {
       anchors.fill: parent
+      enabled: !root.folding
       onClicked: root.dismiss()
     }
 
-    BorderSurface {
-      id: card
-      width: root.cardWidth
-      height: form.implicitHeight + contentMargin * 2 + Style.space(8)
-      radius: root.cornerRadius
-      anchors.centerIn: parent
-      color: root.background
-      borderSpec: root.borderSpec
-      padding: root.contentMargin
+    Item {
+      id: flyer
+      width: card.width
+      height: card.height
+      transformOrigin: Item.Center
+      clip: true
 
-      MouseArea { anchors.fill: parent; onClicked: {} }
+      transform: Scale {
+        origin.x: flyer.width / 2
+        origin.y: flyer.height / 2
+        xScale: root.foldScaleX
+        yScale: root.foldScaleY
+      }
 
-      Column {
-        id: form
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.top: parent.top
-        anchors.topMargin: card.contentTopInset
-        anchors.rightMargin: card.contentRightInset
-        anchors.leftMargin: card.contentLeftInset
-        spacing: Style.space(10)
+      BorderSurface {
+        id: card
+        width: root.cardWidth
+        height: form.implicitHeight + contentMargin * 2 + Style.space(8)
+        radius: root.cornerRadius
+        color: root.background
+        borderSpec: root.borderSpec
+        padding: root.contentMargin
 
-        Text {
-          textFormat: Text.PlainText
-          width: parent.width
-          text: root.titleText
-          color: Qt.darker(root.foreground, 1.25)
-          font.family: root.fontFamily
-          font.pixelSize: Style.font.title
-          font.bold: true
-          renderType: Text.NativeRendering
-        }
+        MouseArea { anchors.fill: parent; enabled: !root.folding; onClicked: {} }
 
-        TextField {
-          id: field
-          width: parent.width
-          foreground: root.foreground
-          accent: Color.accent
-          font.family: root.fontFamily
-          font.pixelSize: Style.font.heading
-          placeholderText: root.fieldPlaceholder
-          onAccepted: root.submit()
+        Column {
+          id: form
+          anchors.left: parent.left
+          anchors.right: parent.right
+          anchors.top: parent.top
+          anchors.topMargin: card.contentTopInset
+          anchors.rightMargin: card.contentRightInset
+          anchors.leftMargin: card.contentLeftInset
+          spacing: Style.space(10)
 
-          Keys.onPressed: function(event) {
-            if (event.key === Qt.Key_Escape) {
-              root.dismiss()
-              event.accepted = true
+          Text {
+            textFormat: Text.PlainText
+            width: parent.width
+            text: root.titleText
+            color: Qt.darker(root.foreground, 1.25)
+            font.family: root.fontFamily
+            font.pixelSize: Style.font.title
+            font.bold: true
+            renderType: Text.NativeRendering
+          }
+
+          TextField {
+            id: field
+            width: parent.width
+            enabled: !root.folding
+            foreground: root.foreground
+            accent: Color.accent
+            font.family: root.fontFamily
+            font.pixelSize: Style.font.heading
+            placeholderText: root.fieldPlaceholder
+            onAccepted: root.submit()
+
+            Keys.onPressed: function(event) {
+              if (event.key === Qt.Key_Escape) {
+                root.dismiss()
+                event.accepted = true
+              }
             }
           }
         }
       }
+    }
+
+    SequentialAnimation {
+      id: foldAnim
+      ParallelAnimation {
+        NumberAnimation { target: root; property: "foldScaleX"; to: 1.08; duration: 120; easing.type: Easing.OutCubic }
+        NumberAnimation { target: root; property: "foldScaleY"; to: 0.62; duration: 120; easing.type: Easing.OutCubic }
+      }
+      ParallelAnimation {
+        NumberAnimation { id: flyX; target: flyer; property: "x"; duration: 340; easing.type: Easing.InCubic }
+        NumberAnimation { id: flyY; target: flyer; property: "y"; duration: 340; easing.type: Easing.InCubic }
+        NumberAnimation { target: root; property: "foldScaleX"; to: 0.06; duration: 340; easing.type: Easing.InCubic }
+        NumberAnimation { target: root; property: "foldScaleY"; to: 0.02; duration: 340; easing.type: Easing.InCubic }
+        NumberAnimation { target: flyer; property: "opacity"; to: 0; duration: 260; easing.type: Easing.InQuad }
+        NumberAnimation { target: scrimRect; property: "opacity"; to: 0; duration: 200; easing.type: Easing.InQuad }
+      }
+      onFinished: root.finishFold()
     }
   }
 }
