@@ -250,6 +250,31 @@ function encode(state) {
   return JSON.stringify(state || emptyState(), null, 2) + "\n"
 }
 
+var toastExpireMs = 15000
+
+function toastForReminder(reminder) {
+  return {
+    title: String((reminder && reminder.atLabel) || "Today Ping"),
+    body: String((reminder && reminder.message) || "")
+  }
+}
+
+function tooltipFor(reminders) {
+  var items = Array.isArray(reminders) ? reminders : []
+  if (items.length === 0) return "Today Ping — click to set"
+  var lines = []
+  for (var i = 0; i < items.length; i++) {
+    var r = items[i]
+    if (!r) continue
+    var time = String(r.atLabel || "")
+    var message = String(r.message || "")
+    if (time && message) lines.push(time + "  " + message)
+    else if (time) lines.push(time)
+    else if (message) lines.push(message)
+  }
+  return lines.length ? lines.join("\n") : "Today Ping — click to set"
+}
+
 if (typeof module !== "undefined") {
   module.exports = {
     todayKey: todayKey,
@@ -262,6 +287,9 @@ if (typeof module !== "undefined") {
     reconcile: reconcile,
     addReminder: addReminder,
     removeReminder: removeReminder,
-    encode: encode
+    encode: encode,
+    toastExpireMs: toastExpireMs,
+    toastForReminder: toastForReminder,
+    tooltipFor: tooltipFor
   }
 }

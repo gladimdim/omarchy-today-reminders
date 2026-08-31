@@ -14,6 +14,8 @@ BarWidget {
   property bool countReady: false
   property bool menuOpen: false
   property real catchScale: 1
+  property var reminders: []
+  readonly property string statusTooltip: TodayPing.tooltipFor(reminders)
 
   readonly property string home: Quickshell.env("HOME")
   readonly property string stateHome: Quickshell.env("XDG_STATE_HOME")
@@ -65,6 +67,7 @@ BarWidget {
 
   function applyCount(text) {
     var result = TodayPing.reconcile(text, new Date())
+    root.reminders = result.state.reminders
     var next = result.state.reminders.length
     if (root.countReady && next > root.lastCount) catchDelay.restart()
     root.pendingCount = next
@@ -127,9 +130,7 @@ BarWidget {
     bar: root.bar
     text: "󰂚"
     active: root.pendingCount > 0
-    tooltipText: root.pendingCount > 0
-      ? (root.pendingCount === 1 ? "1 ping today" : root.pendingCount + " pings today")
-      : "Today Ping — click to set"
+    tooltipText: root.statusTooltip
     onPressed: function(b) {
       if (b === Qt.RightButton) {
         root.closeList()

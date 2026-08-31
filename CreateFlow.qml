@@ -146,7 +146,14 @@ Item {
   }
 
   function notify(title, body) {
-    Util.execArgv(["omarchy-notification-send", "-g", "󰂚", String(title), String(body || "")])
+    Util.execArgv([
+      "omarchy-notification-send",
+      "-g", "󰂚",
+      "-u", "normal",
+      "-t", "15000",
+      String(title),
+      String(body || "")
+    ])
   }
 
   function persist(state) {
@@ -185,10 +192,7 @@ Item {
         return
       }
       persist(result.state)
-      root.pendingNotice = {
-        title: result.reminder.message,
-        body: "I'll ping you at " + result.reminder.atLabel
-      }
+      root.pendingNotice = TodayPing.toastForReminder(result.reminder)
       root.playFold()
     }
   }

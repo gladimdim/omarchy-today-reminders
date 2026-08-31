@@ -47,15 +47,15 @@ Item {
   }
 
   function fire(reminder) {
-    var notify = [
+    var toast = TodayPing.toastForReminder(reminder)
+    Util.execArgv([
       "omarchy-notification-send",
       "-g", "󰂚",
       "-u", "normal",
-      "-t", "8000",
-      "Today Ping",
-      String(reminder.message || "")
-    ]
-    Util.execArgv(notify)
+      "-t", "15000",
+      toast.title,
+      toast.body
+    ])
     playChime()
   }
 

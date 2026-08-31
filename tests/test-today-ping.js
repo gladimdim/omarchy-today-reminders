@@ -52,9 +52,19 @@ function testRandomPhrase() {
   assert.ok(typeof phrase === "string" && phrase.length > 0)
 }
 
+function testToastAndTooltip() {
+  const reminder = { atLabel: "15:30", message: "Tea" }
+  const toast = TodayPing.toastForReminder(reminder)
+  assert.strictEqual(toast.title, "15:30")
+  assert.strictEqual(toast.body, "Tea")
+  assert.strictEqual(TodayPing.tooltipFor([reminder]), "15:30  Tea")
+  assert.ok(TodayPing.tooltipFor([]).indexOf("Today Ping") !== -1)
+}
+
 testParseWhen()
 testTodayOnlyAndAck()
 testRemove()
 testSuggestedWhen()
 testRandomPhrase()
+testToastAndTooltip()
 console.log("ok")
