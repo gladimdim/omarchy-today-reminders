@@ -39,8 +39,9 @@ Item {
   property string rawText: ""
   property bool writing: false
   property bool folding: false
-  property real foldScaleX: 1
-  property real foldScaleY: 1
+  property real swallow: 0
+  property real restX: 0
+  property real restY: 0
   property var pendingNotice: null
 
   function refreshPlaceholders() {
@@ -50,55 +51,22 @@ Item {
 
   function resetFlyer() {
     root.folding = false
-    root.foldScaleX = 1
-    root.foldScaleY = 1
-    flyer.opacity = 1
+    root.swallow = 0
     scrimRect.opacity = 1
     Qt.callLater(root.centerFlyer)
   }
 
   function centerFlyer() {
     if (root.folding || !flyer || !panel) return
-    flyer.x = Math.round((panel.width - flyer.width) / 2)
-    flyer.y = Math.round((panel.height - flyer.height) / 2)
-  }
-
-  function iconCenter() {
-    var fallback = Qt.point(panel.width / 2, panel.height - Style.space(20))
-    try {
-      var bar = root.shell ? root.shell.bar : null
-      if (!bar || typeof bar.moduleWidgets !== "function") return fallback
-      var items = bar.moduleWidgets("gladimdim.today-ping")
-      if (!items || items.length === 0) return fallback
-      var icon = items[0]
-      for (var i = 0; i < items.length; i++) {
-        var win = items[i].QsWindow ? items[i].QsWindow.window : null
-        if (win && win.screen && panel.screen && win.screen === panel.screen) {
-          icon = items[i]
-          break
-        }
-      }
-      if (!icon || typeof icon.mapToGlobal !== "function") return fallback
-      var g = icon.mapToGlobal(icon.width / 2, icon.height / 2)
-      var gx = g && g.x !== undefined ? g.x : Number(g)
-      var gy = g && g.y !== undefined ? g.y : 0
-      var loc = (typeof panel.mapFromGlobal === "function") ? panel.mapFromGlobal(gx, gy) : Qt.point(gx, gy)
-      if (!loc || loc.x === undefined) return fallback
-      if (loc.x < 0 || loc.x > panel.width || loc.y < 0 || loc.y > panel.height) return fallback
-      return loc
-    } catch (e) {
-      return fallback
-    }
+    root.restX = Math.round((panel.width - card.width) / 2)
+    root.restY = Math.round((panel.height - card.height) / 2)
   }
 
   function playFold() {
     if (root.folding) return
     root.folding = true
     if (field) field.focus = false
-    var target = root.iconCenter()
-    flyX.to = Math.round(target.x - flyer.width / 2)
-    flyY.to = Math.round(target.y - flyer.height / 2)
-    foldAnim.restart()
+    swallowAnim.restart()
   }
 
   function hideOverlay() {
@@ -118,7 +86,7 @@ Item {
   }
 
   function open(payloadJson) {
-    if (foldAnim.running) foldAnim.stop()
+    if (swallowAnim.running) swallowAnim.stop()
     root.opened = true
     root.step = "when"
     root.whenText = ""
@@ -135,7 +103,7 @@ Item {
   }
 
   function dismiss() {
-    if (foldAnim.running) foldAnim.stop()
+    if (swallowAnim.running) swallowAnim.stop()
     root.folding = false
     root.hideOverlay()
   }
@@ -234,20 +202,23 @@ Item {
 
     Item {
       id: flyer
-      width: card.width
+      x: root.restX + card.width * root.swallow
+      y: root.restY
+      width: Math.max(0, card.width * (1 - root.swallow))
       height: card.height
-      transformOrigin: Item.Center
       clip: true
+      opacity: root.swallow < 0.92 ? 1 : (1 - (root.swallow - 0.92) / 0.08)
 
       transform: Scale {
-        origin.x: flyer.width / 2
+        origin.x: Math.max(1, flyer.width)
         origin.y: flyer.height / 2
-        xScale: root.foldScaleX
-        yScale: root.foldScaleY
+        yScale: 1 - root.swallow * 0.12
       }
 
       BorderSurface {
         id: card
+        x: -card.width * root.swallow
+        y: 0
         width: root.cardWidth
         height: form.implicitHeight + contentMargin * 2 + Style.space(8)
         radius: root.cornerRadius
@@ -298,22 +269,24 @@ Item {
           }
         }
       }
+
+      Rectangle {
+        visible: root.swallow > 0.02 && root.swallow < 0.98
+        width: Math.min(Style.space(14), flyer.width)
+        height: parent.height
+        x: 0
+        gradient: Gradient {
+          orientation: Gradient.Horizontal
+          GradientStop { position: 0; color: Qt.rgba(root.foreground.r, root.foreground.g, root.foreground.b, 0.18) }
+          GradientStop { position: 1; color: "transparent" }
+        }
+      }
     }
 
-    SequentialAnimation {
-      id: foldAnim
-      ParallelAnimation {
-        NumberAnimation { target: root; property: "foldScaleX"; to: 1.08; duration: 120; easing.type: Easing.OutCubic }
-        NumberAnimation { target: root; property: "foldScaleY"; to: 0.62; duration: 120; easing.type: Easing.OutCubic }
-      }
-      ParallelAnimation {
-        NumberAnimation { id: flyX; target: flyer; property: "x"; duration: 340; easing.type: Easing.InCubic }
-        NumberAnimation { id: flyY; target: flyer; property: "y"; duration: 340; easing.type: Easing.InCubic }
-        NumberAnimation { target: root; property: "foldScaleX"; to: 0.06; duration: 340; easing.type: Easing.InCubic }
-        NumberAnimation { target: root; property: "foldScaleY"; to: 0.02; duration: 340; easing.type: Easing.InCubic }
-        NumberAnimation { target: flyer; property: "opacity"; to: 0; duration: 260; easing.type: Easing.InQuad }
-        NumberAnimation { target: scrimRect; property: "opacity"; to: 0; duration: 200; easing.type: Easing.InQuad }
-      }
+    ParallelAnimation {
+      id: swallowAnim
+      NumberAnimation { target: root; property: "swallow"; to: 1; duration: 420; easing.type: Easing.InCubic }
+      NumberAnimation { target: scrimRect; property: "opacity"; to: 0; duration: 280; easing.type: Easing.InQuad }
       onFinished: root.finishFold()
     }
   }
