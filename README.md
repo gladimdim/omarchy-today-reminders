@@ -43,6 +43,8 @@ State lives at `~/.local/state/omarchy/today-ping.json`. Delete that file to res
 - `ListPanel.qml` — today's list
 - `TodayPing.js` — time parsing and today-only store
 
+After tagging a new release, re-verify the marketplace listing for the exact new commit. See [AGENTS.md](AGENTS.md).
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
